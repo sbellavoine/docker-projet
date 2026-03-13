@@ -109,3 +109,44 @@ app.delete("/products/:id", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Products service running on port ${PORT}`);
 });
+
+app.patch("/products/:id/decrement-stock", async (req, res) => {
+  const { quantity } = req.body;
+
+  if (!quantity || quantity <= 0) {
+    return res.status(400).json({ error: "Valid quantity is required" });
+  }
+
+  try {
+    const stockCheck = await pool.query(
+      "SELECT * FROM products WHERE id = $1",
+      [req.params.id]
+    );
+
+    if (stockCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    const product = stockCheck.rows[0];
+
+    if (product.stock < quantity) {
+      return res.status(400).json({ error: "Insufficient stock" });
+    }
+
+    const result = await pool.query(
+      `UPDATE products
+       SET stock = stock - $1
+       WHERE id = $2
+       RETURNING *`,
+      [quantity, req.params.id]
+    );
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Products service running on port ${PORT}`);
+});
