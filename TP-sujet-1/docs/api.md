@@ -84,3 +84,27 @@ Exemple :
 ```
 
 Cette route vérifie si l’utilisateur existe et si le mot de passe correspond.
+
+
+
+#### Service "Orders" (port 5003)
+
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET | `/orders` | Lister toutes les commandes |
+| GET | `/orders/{id}` | Détail d'une commande |
+| POST | `/orders` | Créer une commande |
+| GET | `/orders/user/{user_id}` | Commandes d'un utilisateur |
+| GET | `/health` | Healthcheck |
+
+
+#### Service "Products" (port 5002)
+
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET | `/products` | Lister tous les produits |
+| GET | `/products/{id}` | Détail d'un produit |
+| POST | `/products` | Créer un produit |
+| PUT | `/products/{id}` | Modifier un produit |
+| DELETE | `/products/{id}` | Supprimer un produit |
+| GET | `/health` | Healthcheck |
