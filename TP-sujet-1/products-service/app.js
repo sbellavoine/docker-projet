@@ -1,27 +1,37 @@
-const express = require('express');
-const {Pool} = require('pg');
+const express = require("express");
+const { Pool } = require("pg");
+
 const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 5002;
 
 const pool = new Pool({
-    host : process.env.DB_HOST,
-    port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
 });
 
-app.get('/products', async (req, res) => {
-    try {
-        const result = await poom.query('SELECT * FROM products ORDER BY id');
-        res.json(result.rows);
-    }
-    catch (err) {
-        console.error('Erreur affichage products:', err);
-        res.status(500).json({ error: 'Erreur serveur' });
-    }
+app.get("/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.status(200).json({ status: "ok", service: "products" });
+  } catch (error) {
+    console.error("Erreur healthcheck:", error);
+    res.status(500).json({ status: "error", message: error.message });
+  }
+});
+
+app.get("/products", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM products ORDER BY id");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erreur affichage products:", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
 });
 
 app.get("/products/:id", async (req, res) => {
@@ -37,6 +47,7 @@ app.get("/products/:id", async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (error) {
+    console.error("Erreur récupération produit:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -58,6 +69,7 @@ app.post("/products", async (req, res) => {
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
+    console.error("Erreur création produit:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -84,6 +96,7 @@ app.put("/products/:id", async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (error) {
+    console.error("Erreur modification produit:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -101,13 +114,9 @@ app.delete("/products/:id", async (req, res) => {
 
     res.json({ message: `Product ${req.params.id} supprimé` });
   } catch (error) {
+    console.error("Erreur suppression produit:", error);
     res.status(500).json({ error: error.message });
   }
-});
-
-
-app.listen(PORT, () => {
-  console.log(`Products service running on port ${PORT}`);
 });
 
 app.patch("/products/:id/decrement-stock", async (req, res) => {
@@ -143,6 +152,7 @@ app.patch("/products/:id/decrement-stock", async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (error) {
+    console.error("Erreur décrément stock:", error);
     res.status(500).json({ error: error.message });
   }
 });

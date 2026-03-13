@@ -1,91 +1,4 @@
 services:
-  users-db:
-    image: postgres:15
-    container_name: users-db
-    environment:
-      POSTGRES_DB: usersdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - users-db-data:/var/lib/postgresql/data
-      - ./users-service/init.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d usersdb"]
-      interval: 5s
-      retries: 5
-    restart: unless-stopped
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
-    networks:
-      - ecommerce-network
-
-  users-api:
-    build: ./users-service
-    container_name: users-api
-    environment:
-      PORT: 5001
-      DB_HOST: users-db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: usersdb
-    depends_on:
-      users-db:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - ecommerce-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5001/health || exit 1"]
-      interval: 20s
-      timeout: 5s
-      retries: 3
-
-  products-db:
-    image: postgres:16-alpine
-    container_name: products-db
-    environment:
-      POSTGRES_DB: productsdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - products-db-data:/var/lib/postgresql/data
-      - ./products-service/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d productsdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - ecommerce-network
-    restart: unless-stopped
-
-  products-service:
-    build: ./products-service
-    container_name: products-service
-    environment:
-      PORT: 5002
-      DB_HOST: products-db
-      DB_PORT: 5432
-      DB_NAME: productsdb
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-    depends_on:
-      products-db:
-        condition: service_healthy
-    expose:
-      - "5002"
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5002/health || exit 1"]
-      interval: 20s
-      timeout: 5s
-      retries: 3
-    networks:
-      - ecommerce-network
-    restart: unless-stopped
-
   api-gateway:
     image: nginx:alpine
     container_name: api-gateway
@@ -98,15 +11,155 @@ services:
         condition: service_healthy
       products-service:
         condition: service_healthy
-      - users-api
+      orders-service:
+        condition: service_healthy
     restart: unless-stopped
     networks:
-      - ecommerce-network
+      - gateway-users-network
+      - gateway-products-network
+      - gateway-orders-network
+
+  users-db:
+    image: postgres:15
+    container_name: users-db
+    environment:
+      POSTGRES_DB: ${USERS_DB_NAME}
+      POSTGRES_USER: ${USERS_DB_USER}
+      POSTGRES_PASSWORD: ${USERS_DB_PASSWORD}
+    volumes:
+      - users-db-data:/var/lib/postgresql/data
+      - ./users-service/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${USERS_DB_USER} -d ${USERS_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
+    networks:
+      - users-network
+
+  users-api:
+    build: ./users-service
+    container_name: users-api
+    environment:
+      PORT: 5001
+      DB_HOST: users-db
+      DB_PORT: 5432
+      DB_USER: ${USERS_DB_USER}
+      DB_PASSWORD: ${USERS_DB_PASSWORD}
+      DB_NAME: ${USERS_DB_NAME}
+    depends_on:
+      users-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5001/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - users-network
+      - gateway-users-network
+
+  products-db:
+    image: postgres:16-alpine
+    container_name: products-db
+    environment:
+      POSTGRES_DB: ${PRODUCTS_DB_NAME}
+      POSTGRES_USER: ${PRODUCTS_DB_USER}
+      POSTGRES_PASSWORD: ${PRODUCTS_DB_PASSWORD}
+    volumes:
+      - products-db-data:/var/lib/postgresql/data
+      - ./products-service/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PRODUCTS_DB_USER} -d ${PRODUCTS_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - products-network
+
+  products-service:
+    build: ./products-service
+    container_name: products-service
+    environment:
+      PORT: 5002
+      DB_HOST: products-db
+      DB_PORT: 5432
+      DB_NAME: ${PRODUCTS_DB_NAME}
+      DB_USER: ${PRODUCTS_DB_USER}
+      DB_PASSWORD: ${PRODUCTS_DB_PASSWORD}
+    depends_on:
+      products-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5002/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - products-network
+      - gateway-products-network
+      - orders-products-network
+
+  orders-db:
+    image: postgres:16-alpine
+    container_name: orders-db
+    environment:
+      POSTGRES_DB: ${ORDERS_DB_NAME}
+      POSTGRES_USER: ${ORDERS_DB_USER}
+      POSTGRES_PASSWORD: ${ORDERS_DB_PASSWORD}
+    volumes:
+      - orders-db-data:/var/lib/postgresql/data
+      - ./orders-service/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ORDERS_DB_USER} -d ${ORDERS_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - orders-network
+
+  orders-service:
+    build: ./orders-service
+    container_name: orders-service
+    environment:
+      PORT: 5003
+      DB_HOST: orders-db
+      DB_PORT: 5432
+      DB_NAME: ${ORDERS_DB_NAME}
+      DB_USER: ${ORDERS_DB_USER}
+      DB_PASSWORD: ${ORDERS_DB_PASSWORD}
+      PRODUCTS_SERVICE_URL: http://products-service:5002
+    depends_on:
+      orders-db:
+        condition: service_healthy
+      products-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5003/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - orders-network
+      - gateway-orders-network
+      - orders-products-network
 
 volumes:
   users-db-data:
   products-db-data:
+  orders-db-data:
 
 networks:
-  ecommerce-network:
+  users-network:
+  products-network:
+  orders-network:
+  gateway-users-network:
+  gateway-products-network:
+  gateway-orders-network:
+  orders-products-network:

@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     price FLOAT NOT NULL,
-    stock INTEGER NOT NULL DEFAULT 0,
+    stock INTEGER NOT NULL DEFAULT 0
 );
 
 INSERT INTO products (name, price, stock)

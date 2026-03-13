@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS orders (
     product_id INTEGER NOT NULL,
     quantity INTEGER NOT NULL,
     total_price NUMERIC(10,2) NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'created',
+    status VARCHAR(50) NOT NULL DEFAULT 'created'
 );
