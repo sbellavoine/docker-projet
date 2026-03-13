@@ -78,7 +78,7 @@ app.put("/products/:id", async (req, res) => {
   const { name, price, stock } = req.body;
 
   if (!name || price == null || stock == null) {
-    return res.status(400).json({ error: "name, price and stock are required" });
+    return res.status(400).json({ error: "nom, prix et stock sont requis" });
   }
 
   try {
@@ -109,7 +109,7 @@ app.delete("/products/:id", async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Product non trouvé" });
+      return res.status(404).json({ error: "Produit non trouvé" });
     }
 
     res.json({ message: `Product ${req.params.id} supprimé` });
@@ -123,7 +123,7 @@ app.patch("/products/:id/decrement-stock", async (req, res) => {
   const { quantity } = req.body;
 
   if (!quantity || quantity <= 0) {
-    return res.status(400).json({ error: "Valid quantity is required" });
+    return res.status(400).json({ error: "Quantité valide requise" });
   }
 
   try {
@@ -133,13 +133,13 @@ app.patch("/products/:id/decrement-stock", async (req, res) => {
     );
 
     if (stockCheck.rows.length === 0) {
-      return res.status(404).json({ error: "Product not found" });
+      return res.status(404).json({ error: "Produit non trouvé" });
     }
 
     const product = stockCheck.rows[0];
 
     if (product.stock < quantity) {
-      return res.status(400).json({ error: "Insufficient stock" });
+      return res.status(400).json({ error: "Stock insuffisant" });
     }
 
     const result = await pool.query(

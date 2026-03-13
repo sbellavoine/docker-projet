@@ -7,6 +7,6 @@ CREATE TABLE IF NOT EXISTS products (
 
 INSERT INTO products (name, price, stock)
 VALUES
-  ('Ordinateur', 999.99, 10),
+  ('Le nouveau mac avec un processeur d un iphone', 999.99, 10),
   ('Souris', 29.99, 50),
   ('Clavier', 79.99, 30);

@@ -16,13 +16,11 @@ app.get("/health", (req, res) => {
     res.json({ status: "ok" })
 })
 
-/* GET all users */
 app.get("/users", async (req, res) => {
     const result = await pool.query("SELECT * FROM users")
     res.json(result.rows)
 })
 
-/* GET user by id */
 app.get("/users/:id", async (req, res) => {
     const { id } = req.params
 
@@ -34,7 +32,6 @@ app.get("/users/:id", async (req, res) => {
     res.json(result.rows[0])
 })
 
-/* CREATE user */
 app.post("/users", async (req, res) => {
 
     const { username, email, password } = req.body
@@ -47,7 +44,6 @@ app.post("/users", async (req, res) => {
     res.json(result.rows[0])
 })
 
-/* UPDATE user */
 app.put("/users/:id", async (req, res) => {
 
     const { id } = req.params
@@ -61,7 +57,6 @@ app.put("/users/:id", async (req, res) => {
     res.json(result.rows[0])
 })
 
-/* DELETE user */
 app.delete("/users/:id", async (req, res) => {
 
     const { id } = req.params
@@ -71,10 +66,9 @@ app.delete("/users/:id", async (req, res) => {
         [id]
     )
 
-    res.json({ message: "User deleted" })
+    res.json({ message: "User supprimé" })
 })
 
-/* LOGIN */
 app.post("/users/login", async (req, res) => {
 
     const { email, password } = req.body
@@ -85,10 +79,10 @@ app.post("/users/login", async (req, res) => {
     )
 
     if (result.rows.length === 0) {
-        return res.status(401).json({ message: "Invalid credentials" })
+        return res.status(401).json({ message: "authentification invalide" })
     }
 
-    res.json({ message: "Login successful", user: result.rows[0] })
+    res.json({ message: "Connexion réussie", user: result.rows[0] })
 })
 
 app.listen(5001, () => {
