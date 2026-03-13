@@ -16,11 +16,25 @@ app.get("/health", (req, res) => {
     res.json({ status: "ok" })
 })
 
+/* GET all users */
 app.get("/users", async (req, res) => {
     const result = await pool.query("SELECT * FROM users")
     res.json(result.rows)
 })
 
+/* GET user by id */
+app.get("/users/:id", async (req, res) => {
+    const { id } = req.params
+
+    const result = await pool.query(
+        "SELECT * FROM users WHERE id=$1",
+        [id]
+    )
+
+    res.json(result.rows[0])
+})
+
+/* CREATE user */
 app.post("/users", async (req, res) => {
 
     const { username, email, password } = req.body
@@ -31,6 +45,50 @@ app.post("/users", async (req, res) => {
     )
 
     res.json(result.rows[0])
+})
+
+/* UPDATE user */
+app.put("/users/:id", async (req, res) => {
+
+    const { id } = req.params
+    const { username, email } = req.body
+
+    const result = await pool.query(
+        "UPDATE users SET username=$1,email=$2 WHERE id=$3 RETURNING *",
+        [username, email, id]
+    )
+
+    res.json(result.rows[0])
+})
+
+/* DELETE user */
+app.delete("/users/:id", async (req, res) => {
+
+    const { id } = req.params
+
+    await pool.query(
+        "DELETE FROM users WHERE id=$1",
+        [id]
+    )
+
+    res.json({ message: "User deleted" })
+})
+
+/* LOGIN */
+app.post("/users/login", async (req, res) => {
+
+    const { email, password } = req.body
+
+    const result = await pool.query(
+        "SELECT * FROM users WHERE email=$1 AND password_hash=$2",
+        [email, password]
+    )
+
+    if (result.rows.length === 0) {
+        return res.status(401).json({ message: "Invalid credentials" })
+    }
+
+    res.json({ message: "Login successful", user: result.rows[0] })
 })
 
 app.listen(5001, () => {

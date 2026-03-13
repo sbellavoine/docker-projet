@@ -1,5 +1,4 @@
 services:
-
   users-db:
     image: postgres:15
     environment:
@@ -8,12 +7,15 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - users-db-data:/var/lib/postgresql/data
+      - ./users-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d usersdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
     networks:
       - ecommerce-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      retries: 5
 
   users-api:
     build: ./users-service
@@ -25,18 +27,19 @@ services:
     depends_on:
       users-db:
         condition: service_healthy
+    restart: unless-stopped
     networks:
       - ecommerce-network
-    restart: unless-stopped
 
   api-gateway:
     image: nginx:alpine
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - users-api
+    restart: unless-stopped
     networks:
       - ecommerce-network
 
