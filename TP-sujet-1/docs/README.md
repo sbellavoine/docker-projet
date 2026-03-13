@@ -1,10 +1,10 @@
-# Projet Docker — "Microservices from Scratch"
+# Projet Docker - Microservices from Scratch
 
 Ce projet est une petite plateforme e-commerce basée sur une architecture microservices avec Docker.
 
-Chaque service fonctionne dans un conteneur différent et communique via un réseau Docker.
+Chaque service tourne dans un conteneur différent.
 
-Le projet contient plusieurs services :
+Les services présents dans le projet :
 
 - API Gateway (Nginx)
 - Users API (Node.js + Express)
@@ -29,9 +29,9 @@ API Gateway (Nginx) :80
    |----> Orders API :5003
 ```
 
-Chaque service possède sa propre base de données.
+Chaque service possède sa propre base de données PostgreSQL.
 
-Les conteneurs communiquent via le réseau Docker `ecommerce-network`.
+Les conteneurs communiquent entre eux via les réseaux Docker définis dans `compose.yaml`.
 
 # Lancer le projet
 
@@ -122,10 +122,9 @@ TP-sujet-1
 │
 ├── compose.yaml
 ├── .env
-├── README.md
-├── COMMANDS.md
 │
 ├── docs
+│   ├── README.md
 │   ├── architecture.md
 │   └── api.md
 │
@@ -133,8 +132,6 @@ TP-sujet-1
 │   └── nginx.conf
 │
 ├── users-service
-│
 ├── products-service
-│
 └── orders-service
 ```
